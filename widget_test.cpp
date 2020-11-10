@@ -80,7 +80,9 @@ WidgetTest::WidgetTest(QWidget *parent)
 	ui.btnChoseErrorType->setVisible(false);
 	timerUpdateIOCardCounter = new QTimer(this);
 	timerUpdateIOCardCounter->setInterval(100);//每毫秒刷新一次计数
-// 	connect(timerUpdateIOCardCounter, SIGNAL(timeout()), this, SLOT(slots_updateIOcardCounter()));   
+	CameraOffAreet = new QTimer(this);
+	CameraOffAreet->setInterval(10000);
+ 	connect(CameraOffAreet, SIGNAL(timeout()), this, SLOT(slots_CameraOffAreet()));   
 // 	timerUpdateIOCardCounter->start();
 	bIsShowStatisErrorType = false;
 	ui.widget_StatisErrorType->setVisible(false);
@@ -93,6 +95,11 @@ WidgetTest::WidgetTest(QWidget *parent)
 	ui.comboBox->insertItem(0,QString::fromLocal8Bit("全部刷新"));
 	ui.comboBox->insertItem(1,QString::fromLocal8Bit("只刷新坏图"));
 	ui.comboBox->insertItem(2,QString::fromLocal8Bit("全部不刷新"));
+	ui.label_MissNumber->setText("");
+	ui.spinBox_OffLineNumber->setVisible(false);
+	ui.checkBox_CameraContinueReject->setVisible(false);
+	ui.label_rejectNumber->setVisible(false);
+	ui.spinBox_RejectNo->setVisible(false);
 }
 WidgetTest::~WidgetTest()
 {
@@ -503,7 +510,7 @@ void WidgetTest::initWidgetName()
 
 	ui.widget_IOCardSet->setWidgetName(tr("IOCard Delay"));
 	ui.namelayout_IOCardDelaySet->addWidget(ui.widget_IOCardSet->widgetName);
-	ui.widget_CameraSurveillance->hide();
+	//ui.widget_CameraSurveillance->hide();
 }
 
 void WidgetTest::slots_SaveLoginHoldTime()
@@ -671,6 +678,7 @@ void WidgetTest::slots_OKStatis()
 }
 void WidgetTest::slots_OKCameraSurveillance()
 {
+	
 	pMainFrm->m_sSystemInfo.bCameraOffLineSurveillance = ui.checkBox_CameraOffLine->isChecked();
 	pMainFrm->m_sSystemInfo.bCameraContinueRejectSurveillance = ui.checkBox_CameraContinueReject->isChecked();
 	pMainFrm->m_sSystemInfo.iCamOfflineNo = ui.spinBox_OffLineNumber->value();
@@ -685,8 +693,49 @@ void WidgetTest::slots_OKCameraSurveillance()
 	iniStatisSet.setValue("/system/iCamOfflineNo",pMainFrm->m_sSystemInfo.iCamOfflineNo);
 	iniStatisSet.setValue("/system/iCamContinueRejectNumber",pMainFrm->m_sSystemInfo.iCamContinueRejectNumber);
 
+	if(pMainFrm->m_sSystemInfo.bCameraOffLineSurveillance)
+	{
+		if(CameraOffAreet->isActive())
+		{
+			ui.btnOK_CameraSurveillance->setText(QString::fromLocal8Bit("开始检测"));
+			CameraOffAreet->stop();
+			pMainFrm->sVersion = pMainFrm->getVersion(NULL);
+			return;
+		}
+		CameraOffAreet->start();
+		ui.btnOK_CameraSurveillance->setText(QString::fromLocal8Bit("停止检测"));
+	}
 }
+void WidgetTest::slots_CameraOffAreet()
+{
+	bool t_result = false;
+	
+	for(int i=0;i < pMainFrm->m_sSystemInfo.iRealCamCount;i++)
+	{
+		int temp = 0;
+		bool ret = true;
+		try
+		{
+			ret = ((CDHGrabberMER*)pMainFrm->m_sRealCamInfo[i].m_pGrabber)->MERGetParamInt(MERExposure,temp,temp,temp);
+		}
+		catch(...)
+		{
 
+		}
+		if(!ret)
+		{
+			pMainFrm->sVersion = QString::fromLocal8Bit("<font color=\'red\'>  相机%1掉线!</b>").arg(i+1);
+			pMainFrm->m_vIOCard[1]->TestOutPut(6);
+			return;
+		}
+	}
+	
+	if(!t_result)
+	{
+		pMainFrm->sVersion = pMainFrm->getVersion(NULL);
+		//ui.label_MissNumber->setText(QString::fromLocal8Bit(""));
+	}
+}
 void WidgetTest::slots_OK()
 { 
 // 	if (widget_Sample->isChanged())
@@ -2068,7 +2117,7 @@ void WidgetTest::slots_CheckIsSendKickOut()
 				pMainFrm->m_vIOCard[0]->m_Pio24b.setCardOutput(7,1);
 				pMainFrm->m_vIOCard[0]->m_mutexmIOCard.unlock();
 			}
-			pMainFrm->slots_ShowPLCStatus(8,0,0,QString::number(SRate,10,2)+QString("%"));
+			pMainFrm->ShowAlelertStatus(8,0,0,QString::number(SRate,10,2)+QString("%"));
 			//pMainFrm->slots_ShowPLCStatus(8);
 		}
 	}

@@ -43,7 +43,7 @@ Widget_Debug::~Widget_Debug()
 }
 void Widget_Debug::slots_intoWidget()
 {
-	timerUpdateDebugInfo->setInterval(100);
+	timerUpdateDebugInfo->setInterval(1000);
 	connect(timerUpdateDebugInfo, SIGNAL(timeout()), this, SLOT(slots_updateDebugInfo()),Qt::QueuedConnection);   
 	timerUpdateDebugInfo->start();
 

@@ -48,7 +48,7 @@ public slots:
 	void slots_ReTim();
 signals:
 	void signals_PauseAlert();
-private:
+public:
 	bool bIsShow;
 	QLabel *labelWarningPic;
 	QLabel *labelWarningInfo;

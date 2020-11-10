@@ -4,7 +4,6 @@
 
 #include <QSettings>
 #include <QFontMetrics>
-
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QDir>

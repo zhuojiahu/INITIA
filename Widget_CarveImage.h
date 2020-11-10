@@ -60,7 +60,7 @@ public slots:
 	void slots_startTest();
 	void slots_spinBoxValueChanged();
 
-private slots:
+public slots:
 	int slots_carve();
 	void slots_CopyROI();
 	void slots_cancel();
@@ -107,11 +107,12 @@ private:
 	QPoint startPoint;
 	QPoint stopPoint;
 	QPoint maxPoint;
+	QPoint m_HVPoint;
 
 	QPoint tempPoint;
 	QPoint temPoint;
-	int iCameraNo;
-	int iRealCameraNo;
+	
+	
 
 	int iImageWidth;
 	int iImageHeight;
@@ -124,7 +125,6 @@ private:
 	int iLastImageY;
 
 	int iStressMode;
-	int iIsTestGrey;
 	int iTriggerTimes;
 	int iTriggerDelay;
 	int iLastTriggerDelay;
@@ -159,6 +159,13 @@ private:
 	QGraphicsLineItem *pHorizonLineItem4;
 	QGraphicsLineItem *pHorizonLineItem5;
 
+	QGraphicsLineItem *m_pHorizonV;
+	QGraphicsLineItem *m_pHorizonH;
+	QGraphicsLineItem *m_pHorizonH1;
+	QGraphicsLineItem *m_pHorizonH2;
+	QGraphicsLineItem *m_pHorizonV1;
+	QGraphicsLineItem *m_pHorizonV2;
+
 	QLabel	*label_x;
 	QLabel	*label_y;
 	QLabel	*label_w;
@@ -170,6 +177,14 @@ private:
 
 	QwtPlotCurve *pCurveGray;
 	QwtPlotCurve *pCurveSarpness;
+
+	QwtPlotCurve *pCurveReferenceLineA;
+	QwtPlotCurve *pCurveReferenceLineB;
+	QwtPlotCurve *pCurveReferenceLineC;
+public:
+	int iIsTestGrey;
+	int iCameraNo;
+	int iRealCameraNo;
 };
 
 #endif // WIDGET_CARVEIMAGE_H

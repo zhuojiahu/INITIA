@@ -417,6 +417,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_28">
                   <item>
                    <widget class="QCheckBox" name="checkBox_CameraOffLine">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="text">
                      <string>CameraOffLine</string>
                     </property>
@@ -426,7 +432,7 @@
                    <widget class="QLabel" name="label_MissNumber">
                     <property name="minimumSize">
                      <size>
-                      <width>150</width>
+                      <width>15</width>
                       <height>0</height>
                      </size>
                     </property>
@@ -440,6 +446,12 @@
                      <font>
                       <pointsize>15</pointsize>
                      </font>
+                    </property>
+                    <property name="mouseTracking">
+                     <bool>false</bool>
+                    </property>
+                    <property name="focusPolicy">
+                     <enum>Qt::StrongFocus</enum>
                     </property>
                     <property name="text">
                      <string>MissNumber:</string>

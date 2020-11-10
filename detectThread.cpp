@@ -5,7 +5,7 @@
 #include <QMessageBox>
 extern GlasswareDetectSystem *pMainFrm;
 DetectThread::DetectThread(QObject *parent)
-	: QThread(parent)
+	: QThread(parent),tempOri()
 {
 	m_bStopThread = false;
 	ThreadNumber = -1;
@@ -63,6 +63,7 @@ void DetectThread::run()
 			if (0 == DetectElement.iType)
 			{
 				iStressCamera = DetectElement.iCameraStress;
+				//Sleep(2);
 				DetectStress(DetectElement.ImageStress);
 				if (pMainFrm->m_queue[iStressCamera].InitID == DetectElement.ImageStress->initID)
 				{
@@ -257,7 +258,7 @@ void DetectThread::checkImage(CGrabElement *pElement,int iCheckMode)
 		//pMainFrm->m_stressStatue[iCamera].lock();
 		pMainFrm->m_sCarvedCamInfo[iCamera].sImageLocInfo[pElement->nSignalNo].m_AlgImageLocInfos.sLocOri = pAlgCheckResult->sImgLocInfo.sLocOri;
 		pMainFrm->m_sCarvedCamInfo[iCamera].sImageLocInfo[pElement->nSignalNo].m_AlgImageLocInfos.sXldPoint.nCount  = pAlgCheckResult->sImgLocInfo.sXldPoint.nCount;
-
+		
 		memcpy(pMainFrm->m_sCarvedCamInfo[iCamera].sImageLocInfo[pElement->nSignalNo].m_AlgImageLocInfos.sXldPoint.nColsAry, \
 			pAlgCheckResult->sImgLocInfo.sXldPoint.nColsAry,\
 			4*BOTTLEXLD_POINTNUM);														
@@ -273,6 +274,7 @@ void DetectThread::checkImage(CGrabElement *pElement,int iCheckMode)
 		//pMainFrm->m_stressStatue[normalCamera].lock();
 		pElement->sImgLocInfo.sLocOri = pMainFrm->m_sCarvedCamInfo[normalCamera].sImageLocInfo[pElement->nSignalNo].m_AlgImageLocInfos.sLocOri;
 		pElement->sImgLocInfo.sXldPoint.nCount = pMainFrm->m_sCarvedCamInfo[normalCamera].sImageLocInfo[pElement->nSignalNo].m_AlgImageLocInfos.sXldPoint.nCount;
+		
 		memcpy(pElement->sImgLocInfo.sXldPoint.nColsAry,\
 			pMainFrm->m_sCarvedCamInfo[normalCamera].sImageLocInfo[pElement->nSignalNo].m_AlgImageLocInfos.sXldPoint.nColsAry, \
 			4*BOTTLEXLD_POINTNUM);							
@@ -280,7 +282,12 @@ void DetectThread::checkImage(CGrabElement *pElement,int iCheckMode)
 			pMainFrm->m_sCarvedCamInfo[normalCamera].sImageLocInfo[pElement->nSignalNo].m_AlgImageLocInfos.sXldPoint.nRowsAry, \
 			4*BOTTLEXLD_POINTNUM);
 		//pMainFrm->m_stressStatue[normalCamera].unlock();
-
+		if(pElement->sImgLocInfo.sLocOri.modelCol == 0 || pElement->sImgLocInfo.sLocOri.modelRow == 0)
+		{
+			pElement->sImgLocInfo.sLocOri = tempOri;
+		}else{
+			tempOri = pElement->sImgLocInfo.sLocOri;
+		}
 		sAlgCInp.sImgLocInfo = pElement->sImgLocInfo;
 		sReturnStatus = pMainFrm->m_cBottleCheck[iCamera].Check(sAlgCInp,&pAlgCheckResult);
 		pMainFrm->m_sCarvedCamInfo[ pMainFrm->m_sCarvedCamInfo[iCamera].m_iToNormalCamera].sImageLocInfo[pElement->nSignalNo].m_iHaveInfo = 0;
@@ -558,7 +565,7 @@ void DetectThread::CountDefectIOCard0(int nSignalNo,int tmpResult)
 				pMainFrm->m_sRunningInfo.m_iErrorTypeCount[sComErrorpara.nErrorType] +=1;
 				//pMainFrm->m_sRunningInfo.nGSoap_ErrorTypeCount[sComErrorpara.nErrorType] +=1;//阴同添加
 				//增加一个判断函数，确认是否报警
-				//ifSendAret(sComErrorpara.nErrorType);
+				ifSendAret(sComErrorpara.nErrorType);
 			}
 			else
 			{
@@ -626,7 +633,7 @@ void DetectThread::CountDefectIOCard1(int nSignalNo,int tmpResult)
 			pMainFrm->m_sRunningInfo.nGSoap_ErrorCamCount[1] += 1;//阴同添加
 			pMainFrm->m_sRunningInfo.m_iErrorTypeCount[sComErrorpara1.nErrorType] +=1;
 			//pMainFrm->m_sRunningInfo.nGSoap_ErrorTypeCount[sComErrorpara1.nErrorType] +=1;//阴同添加
-			//ifSendAret(sComErrorpara1.nErrorType);
+			ifSendAret(sComErrorpara1.nErrorType);
 		}
 		else
 		{
@@ -786,7 +793,6 @@ void DetectThread::saveImage(CGrabElement *pElement)
 			pMainFrm->m_sRunningInfo.m_mutexRunningInfo.unlock();
 		}
 	}
-
 }
 //将缺陷图像加入错误链表
 void DetectThread::addErrorImageList(CGrabElement *pElement)

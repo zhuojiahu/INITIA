@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>589</width>
-    <height>574</height>
+    <width>486</width>
+    <height>473</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -37,7 +37,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page">
       <layout class="QGridLayout" name="gridLayout_5">
@@ -519,10 +519,33 @@
                  </property>
                 </spacer>
                </item>
+               <item>
+                <widget class="QPushButton" name="pushButton_setToCamera_2">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>SetToCamera</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton_grey">
+                 <property name="minimumSize">
+                  <size>
+                   <width>80</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Test Grey</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_2"/>
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -545,45 +568,39 @@
                </item>
               </layout>
              </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_9"/>
-             </item>
             </layout>
            </widget>
           </item>
           <item>
            <widget class="QWidget" name="widget_GrayTest" native="true">
-            <layout class="QGridLayout" name="gridLayout_4">
-             <item row="0" column="0">
-              <layout class="QGridLayout" name="gridLayout_2">
-               <item row="0" column="2">
-                <widget class="QLabel" name="label_Sharpness">
-                 <property name="text">
-                  <string>sharpness:</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="4">
-                <spacer name="horizontalSpacer_5">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="0" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="7,3">
+             <item>
+              <widget class="QwtPlot" name="qwtPlot_sharpness">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>100000</height>
+                </size>
+               </property>
+               <zorder></zorder>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <item>
                 <widget class="QLabel" name="label_AverageGray">
                  <property name="text">
                   <string>Average Gray：</string>
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
+               <item>
                 <widget class="QLineEdit" name="lineEdit_gray">
                  <property name="maximumSize">
                   <size>
@@ -593,7 +610,14 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="3">
+               <item>
+                <widget class="QLabel" name="label_Sharpness">
+                 <property name="text">
+                  <string>sharpness:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <widget class="QLineEdit" name="lineEdit_sharpness">
                  <property name="maximumSize">
                   <size>
@@ -605,76 +629,24 @@
                </item>
               </layout>
              </item>
-             <item row="1" column="0">
-              <widget class="QwtPlot" name="qwtPlot_sharpness">
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>150</height>
-                </size>
-               </property>
-              </widget>
-             </item>
             </layout>
+            <zorder>qwtPlot_sharpness</zorder>
+            <zorder></zorder>
+            <zorder>horizontalSpacer_2</zorder>
+            <zorder></zorder>
+            <zorder></zorder>
+            <zorder>lineEdit_sharpness</zorder>
            </widget>
           </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_setToCamera_2">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>40</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>SetToCamera</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_grey">
-              <property name="minimumSize">
-               <size>
-                <width>80</width>
-                <height>40</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Test Grey</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
+         <zorder>widget_CameraInfo</zorder>
+         <zorder>widget_GrayTest</zorder>
+         <zorder>label_Sharpness</zorder>
+         <zorder>lineEdit_sharpness</zorder>
+         <zorder>label_AverageGray</zorder>
+         <zorder>lineEdit_gray</zorder>
+         <zorder>horizontalSpacer_2</zorder>
+         <zorder></zorder>
         </widget>
        </item>
       </layout>
@@ -688,6 +660,7 @@
    <class>QwtPlot</class>
    <extends>QFrame</extends>
    <header>qwt_plot.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>DHBaseWidget</class>

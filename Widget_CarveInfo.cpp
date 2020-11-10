@@ -24,7 +24,7 @@ Widget_CarveInfo::Widget_CarveInfo(QWidget *parent)
 	toolButtonToImage->setMaximumHeight(25);
 	toolButtonToImage->setToolButtonStyle(Qt::ToolButtonIconOnly);
 	toolButtonToImage->setText(tr("ImageSet"));
-	QPixmap pixmap2(":/sysButton/arrow");
+	QPixmap pixmap2(":/sysButton/arrowLeft");
 	toolButtonToImage->setIcon(pixmap2);
 	ui.layoutCamera->addWidget(ui.widget_camera->widgetName, 0, Qt::AlignTop);
 	ui.layoutCamera->addStretch();
@@ -57,6 +57,12 @@ void Widget_CarveInfo::TrunCameraSet()
 }
 void Widget_CarveInfo::TrunImageSet()
 {
-	ui.stackedWidget->setCurrentIndex(0);
-
+	int temp = pMainFrm->widget_carveSetting->pStackedCarve->currentIndex();
+	if(pMainFrm->widget_carveSetting->listWidgetCarveImage[temp]->iIsTestGrey)
+	{
+		pMainFrm->widget_carveSetting->listWidgetCarveImage[temp]->slots_grey();
+		ui.stackedWidget->setCurrentIndex(1);
+	}else{
+		ui.stackedWidget->setCurrentIndex(0);
+	}
 }

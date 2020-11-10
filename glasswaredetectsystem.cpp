@@ -9,10 +9,12 @@
 #ifdef JIAMI_INITIA
 #ifdef WIN_32_1_10
 #include "ProgramLicense.h"
+#include "pushLicense.h"
 CProgramLicense m_ProgramLicense;
 #pragma comment( lib,"DHProgramLicense.lib" )
 #else
 #include "ProgramLicense.h"
+#include "pushLicense.h"
 CProgramLicense m_ProgramLicense;
 #pragma comment( lib,"DHProgramLicense64.lib" )
 #endif
@@ -54,6 +56,7 @@ GlasswareDetectSystem::GlasswareDetectSystem(QWidget *parent, Qt::WFlags flags)
 	uniqueFlag = false;
 	imgTime = 0;
 	CherkerAry.pCheckerlist=NULL;
+	surplusDays=0;
 }
 
 GlasswareDetectSystem::~GlasswareDetectSystem()
@@ -69,11 +72,11 @@ GlasswareDetectSystem::~GlasswareDetectSystem()
 QString GlasswareDetectSystem::getVersion(QString strFullName)
 {
 #ifdef WIN_32_1_10
-	QString temp("3.32.");
+	QString temp(tr("Version:")+"3.32.");
 #else
-	QString temp("3.64.");
+	QString temp(tr("Version:")+"3.64.");
 #endif
-	return temp+"1.10";
+	return temp+"1.12";
 }
 
 void GlasswareDetectSystem::closeWidget()
@@ -136,7 +139,7 @@ void GlasswareDetectSystem::GrabCallBack(const s_GBSIGNALINFO *SigInfo)
 	{
 		return;
 	}
-	//m_iGrabCounter[iRealCameraSN]++;
+	m_iGrabCounter[iRealCameraSN]++;
 	if(SigInfo->nErrorCode != GBOK)
 	{
 		pMainFrm->Logfile.write(QString("Camera:%1 have Residual frame").arg(iRealCameraSN+1),CheckLog);
@@ -230,6 +233,7 @@ void GlasswareDetectSystem::PutImagetoDetectList(int iRealCameraSN,int m_iImageC
 			int iCameraSN = m_sRealCamInfo[iRealCameraSN].m_sCorves.i_GrabSN[i];
 			if(m_queue[iCameraSN].listGrab.count()<=0)
 			{
+				pMainFrm->Logfile.write(QString("There is no queue(%1) available!").arg(iCameraSN),CheckLog);
 				continue;
 			}
 			m_queue[iCameraSN].mGrabLocker.lock();
@@ -1444,7 +1448,7 @@ void GlasswareDetectSystem::InitImage()
 			m_sCarvedCamInfo[iCarvedCamNum].m_pGrabTemp = new BYTE[m_sRealCamInfo[i].m_iImageWidth*m_sRealCamInfo[i].m_iImageHeight];
 			//分配元素链表中图像的内存，每剪切出来的相机10个。
 			m_queue[iCarvedCamNum].mGrabLocker.lock();
-			m_queue[iCarvedCamNum].InitQueue(m_sCarvedCamInfo[iCarvedCamNum].m_iImageWidth, m_sCarvedCamInfo[iCarvedCamNum].m_iImageHeight,m_sCarvedCamInfo[iCarvedCamNum].m_iImageBitCount, 10, true);
+			m_queue[iCarvedCamNum].InitQueue(m_sCarvedCamInfo[iCarvedCamNum].m_iImageWidth, m_sCarvedCamInfo[iCarvedCamNum].m_iImageHeight,m_sCarvedCamInfo[iCarvedCamNum].m_iImageBitCount, 30, true);
 			m_queue[iCarvedCamNum].mGrabLocker.unlock();
 			for (int k = 0; k < 256;k++)
 			{
@@ -1554,6 +1558,7 @@ void GlasswareDetectSystem::InitIOCard()
 			m_vIOCard[i] = new CIOCard(m_sSystemInfo.m_sConfigIOCardInfo[i],i);
 			connect(m_vIOCard[i],SIGNAL(emitMessageBoxMainThread(s_MSGBoxInfo)),this,SLOT(slots_MessageBoxMainThread(s_MSGBoxInfo)));
 			s_IOCardErrorInfo sIOCardErrorInfo = m_vIOCard[i]->InitIOCard();
+			Sleep(200);
 			if (!sIOCardErrorInfo.bResult)
 			{
 				m_sSystemInfo.m_bIsIOCardOK = false;
@@ -1802,7 +1807,7 @@ void GlasswareDetectSystem::initInterface()
 	fontCoder.setPixelSize(28);
 	labelCoder->setFont(fontCoder);
 	timerUpdateCoder = new QTimer(this);
-	timerUpdateCoder->setInterval(200);
+	timerUpdateCoder->setInterval(1000);
 	timerUpdateCoder->start();  
 
 
@@ -1886,7 +1891,32 @@ void GlasswareDetectSystem::initInterface()
 		pMainFrm->widget_carveSetting->image_widget->buttonShowCarve->setVisible(false);
 	}
 }
-void GlasswareDetectSystem::slots_ShowPLCStatus(int iStatus,int maxNumber,int CostTime,QString rate)
+void GlasswareDetectSystem::ShowAlelertStatus(int iStatus,int maxNumber,int CostTime,QString rate)
+{
+	if (iLastStatus == iStatus)
+	{
+		return;
+	}
+	else
+	{
+		iLastStatus = iStatus;
+	}
+	if(test_widget->kickOutTimer->isActive())
+	{
+		if (iStatus<m_vstrPLCInfoType.size())
+		{
+			emit signals_HideWarning(2);
+			emit signals_ShowWarning(8,m_vstrPLCInfoType.at(iStatus)+rate);
+		}
+		else
+		{
+			emit signals_HideWarning(2);
+			emit signals_ShowWarning(8,m_sErrorInfo.m_vstrErrorType.at(iStatus-m_vstrPLCInfoType.size()-1)
+				+QString::fromLocal8Bit("报警"));
+		}
+	}
+}
+void GlasswareDetectSystem::slots_ShowPLCStatus(int iStatus)
 {
 	if (iLastStatus == iStatus)
 	{
@@ -1907,13 +1937,8 @@ void GlasswareDetectSystem::slots_ShowPLCStatus(int iStatus,int maxNumber,int Co
 		else
 		{
 			//labelPLC->setStyleSheet("color:red;");
-			if(iStatus==8)
-			{
-				emit signals_ShowWarning(8,m_vstrPLCInfoType.at(iStatus)+rate);
-			}else{
-				emit signals_ShowWarning(2,m_vstrPLCInfoType.at(iStatus));
-			}
-			
+			emit signals_ShowWarning(2,m_vstrPLCInfoType.at(iStatus));
+
 		}
 		//状态栏信息
 		if (iStatus >= 0 )
@@ -1932,10 +1957,6 @@ void GlasswareDetectSystem::slots_ShowPLCStatus(int iStatus,int maxNumber,int Co
 		{
 			info_widget->slots_PauseAlert();
 		}
-	}else{
-		emit signals_HideWarning(2);
-		emit signals_ShowWarning(8,m_sErrorInfo.m_vstrErrorType.at(iStatus-m_vstrPLCInfoType.size()-1)+QString::number(maxNumber) + QString::fromLocal8Bit("个/")
-			+QString::number(CostTime)+QString::fromLocal8Bit("分钟"));
 	}
 }
 void GlasswareDetectSystem::slots_UpdateCoderNumber()
@@ -1949,46 +1970,27 @@ void GlasswareDetectSystem::slots_UpdateCoderNumber()
 		if(m_sSystemInfo.m_iSystemType == 0)
 		{
 			nSensorCounter = m_vIOCard[0]->ReadCounter(0);
-		}
-		if(m_sSystemInfo.m_iSystemType == 2 || m_sSystemInfo.m_iSystemType == 3|| m_sSystemInfo.m_iSystemType == 6)
+		}else if(m_sSystemInfo.m_iSystemType == 2)
 		{
 			nSignNum = m_vIOCard[0]->ReadCounter(3);
-		}		
-		else
+		}else
 		{
 			nSignNum = m_vIOCard[0]->ReadCounter(4);
 		}
 		m_vIOCard[0]->m_mutexmIOCard.unlock();
 		//药玻瓶口瓶底剔废
-		if(m_sSystemInfo.m_iSystemType == 5)
-		{
-			m_vIOCard[1]->m_mutexmIOCard.lock();
-			nSignNum1     = m_vIOCard[1]->ReadCounter(4);
-			m_vIOCard[1]->m_mutexmIOCard.unlock();
-		}
-		pMainFrm->m_sRunningInfo.m_mutexRunningInfo.lock();
+		
 		if ((nSignNum - m_sRunningInfo.m_kickoutNumber > 0) && (nSignNum - m_sRunningInfo.m_kickoutNumber < 50))
 		{
 			m_sRunningInfo.m_failureNumFromIOcard = m_sRunningInfo.m_failureNumFromIOcard + nSignNum - m_sRunningInfo.m_kickoutNumber;
-			//阴同添加
-			if (m_sRunningInfo.m_failureNumFromIOcard >= m_sRunningInfo.m_GSoap_Last_failureNumFromIOcard)
-			{
-				m_sRunningInfo.nGSOAP_KickCount += m_sRunningInfo.m_failureNumFromIOcard - m_sRunningInfo.m_GSoap_Last_failureNumFromIOcard;
-			}
-			else
-			{
-				m_sRunningInfo.nGSOAP_KickCount += m_sRunningInfo.m_failureNumFromIOcard;
-			}
-			m_sRunningInfo.m_GSoap_Last_failureNumFromIOcard = m_sRunningInfo.m_failureNumFromIOcard;
 		}
 		m_sRunningInfo.m_kickoutNumber = nSignNum;
-		pMainFrm->m_sRunningInfo.m_mutexRunningInfo.unlock();
 	}
 
 	QString strValue,strCounter,strEncoder,strTime;
 	strCounter = QString(tr("Sensor Counter")+":%1").arg(nSensorCounter);
 	strEncoder = QString(tr("Coder Number")+":%1").arg(nCodeNum);
-	strTime = QTime::currentTime().toString() + tr("Version:") + sVersion;
+	strTime = QTime::currentTime().toString() + sVersion;
 	switch (pMainFrm->m_sRunningInfo.m_iKickMode)
 	{
 	case 0:
@@ -2006,14 +2008,23 @@ void GlasswareDetectSystem::slots_UpdateCoderNumber()
 		break;
 
 	}
-	labelSpeed->setText(tr("Speed:") + m_sRunningInfo.strSpeed);
-	//计算模点失败率并显示
-	double num = 0.00;
-	if (m_sRunningInfo.m_checkedNum != 0)
+	if(surplusDays>0)
 	{
-		num = ((double)m_sRunningInfo.nModelReadFailureNumber / m_sRunningInfo.m_checkedNum) * 100;
+		labelSpeed->setText(QString::fromLocal8Bit("剩余使用天数：%1   ").arg(surplusDays)+tr("Speed:") + m_sRunningInfo.strSpeed);
+	}else{
+		labelSpeed->setText(tr("Speed:") + m_sRunningInfo.strSpeed);
 	}
-	labelUnknowMoldNumber->setText(QString::fromLocal8Bit("读模率: %1%").arg(QString::number(num,10, 2)));
+	//计算模点失败率并显示
+	
+	if (m_sRunningInfo.nModelReadFailureNumber !=0)
+	{
+		double num = 0.00;
+		if(m_sRunningInfo.m_checkedNum != 0)
+		{
+			num = ((double)m_sRunningInfo.nModelReadFailureNumber / m_sRunningInfo.m_checkedNum) * 100;
+			labelUnknowMoldNumber->setText(QString::fromLocal8Bit("读模率: %1%").arg(QString::number(num,10, 2)));
+		}
+	}
 }
 void GlasswareDetectSystem::slots_updateCameraState(int nCam,int mode)
 {
@@ -2047,7 +2058,7 @@ void GlasswareDetectSystem::CarveImage(uchar* pRes,uchar* pTar,int iResWidth,int
 //开启IO卡线程
 void GlasswareDetectSystem::AlertFunction(int i,int maxNumber,int temp_interval)
 {
-	pMainFrm->slots_ShowPLCStatus(i,maxNumber,temp_interval);
+	pMainFrm->ShowAlelertStatus(i,maxNumber,temp_interval);
 }
 
 void GlasswareDetectSystem::slots_turnPage(int current_page, int iPara)
@@ -2323,7 +2334,7 @@ void GlasswareDetectSystem::slots_OnBtnStar()
 				m_sRealCamInfo[i].m_iImageIdxLast = 0;
 			}
 			pMainFrm->Logfile.write(tr("Start Check"),OperationLog);
-			for (int i = 0;i<=m_sSystemInfo.iCamCount;i++)
+			for (int i = 0;i<m_sSystemInfo.iCamCount;i++)
 			{
 				s_SystemInfoforAlg sSystemInfoforAlg;
 				sSystemInfoforAlg.bIsChecking = true;
@@ -2374,7 +2385,7 @@ void GlasswareDetectSystem::slots_OnBtnStar()
 		TBtn->setText(tr("Start detect"));
 		TBtn->setIcon(pixmap);
 
-		for (int i = 0;i<=m_sSystemInfo.iCamCount;i++)
+		for (int i = 0;i<m_sSystemInfo.iCamCount;i++)
 		{
 			s_SystemInfoforAlg sSystemInfoforAlg;
 			sSystemInfoforAlg.bIsChecking = false;
@@ -2638,9 +2649,9 @@ void GlasswareDetectSystem::ShowCheckSet(int nCamIdx,int signalNumber)
 	pMainFrm->Logfile.write(tr("In to Alg Page")+tr("CamraNo:%1").arg(nCamIdx),OperationLog,0);
 	return;	
 }
-void GlasswareDetectSystem::slots_OnExit()
+void GlasswareDetectSystem::slots_OnExit(bool ifyanz)
 {
-	if (QMessageBox::Yes == QMessageBox::question(this,tr("Exit"),
+	if (ifyanz || QMessageBox::Yes == QMessageBox::question(this,tr("Exit"),
 		tr("Are you sure to exit?"),
 		QMessageBox::Yes | QMessageBox::No))	
 	{
@@ -2936,7 +2947,7 @@ void GlasswareDetectSystem::InitCamImage(int iCameraNo)
 				// 			pMainFrm->Logfile.write(tr("分配元素链表中图像的内存！%1").arg(iCarvedCamNum),OperationLog);
 				m_queue[iCarvedCamNum].mDetectLocker.lock();
 				m_queue[iCarvedCamNum].mGrabLocker.lock();
-				m_queue[iCarvedCamNum].InitQueue(m_sCarvedCamInfo[iCarvedCamNum].m_iImageWidth, m_sCarvedCamInfo[iCarvedCamNum].m_iImageHeight,m_sCarvedCamInfo[iCarvedCamNum].m_iImageBitCount, 10, true);
+				m_queue[iCarvedCamNum].InitQueue(m_sCarvedCamInfo[iCarvedCamNum].m_iImageWidth, m_sCarvedCamInfo[iCarvedCamNum].m_iImageHeight,m_sCarvedCamInfo[iCarvedCamNum].m_iImageBitCount, 30, true);
 				m_queue[iCarvedCamNum].mGrabLocker.unlock();
 				m_queue[iCarvedCamNum].mDetectLocker.unlock();
 
@@ -3040,6 +3051,52 @@ void GlasswareDetectSystem::InitLastData()
 	
 }
 #ifdef JIAMI_INITIA
+void GlasswareDetectSystem::MonitorLicense()
+{
+	QString  g_UidChar = "06a6914a-d863-43e1-800e-7e2eece22fd7";
+	ver_code uucode;
+	m_ProgramLicense.GetVerCode(&uucode);
+	QString strCode = QString("%1-%2-%3-%4%5-%6%7%8%9%10%11")
+		.arg(uucode.Data1,8,16,QChar('0')).arg(uucode.Data2,4,16,QChar('0')).arg(uucode.Data3,4,16,QChar('0'))
+		.arg((int)uucode.Data4[0],2,16,QChar('0')).arg((int)uucode.Data4[1],2,16,QChar('0'))
+		.arg((int)uucode.Data4[2],2,16,QChar('0')).arg((int)uucode.Data4[3],2,16,QChar('0'))
+		.arg((int)uucode.Data4[4],2,16,QChar('0')).arg((int)uucode.Data4[5],2,16,QChar('0'))
+		.arg((int)uucode.Data4[6],2,16,QChar('0')).arg((int)uucode.Data4[7],2,16,QChar('0'));
+	if (g_UidChar == strCode)
+	{
+		//验证License
+		s_KeyVerfResult res = m_ProgramLicense.CheckLicenseValid(true);
+		if (res.nError <= 0)
+		{
+			//int m_nLicenseDays = res.nDays;
+			int m_nLicenseDays = m_ProgramLicense.ReadHardwareID("getexpdate");
+			if (m_nLicenseDays<=10 && m_nLicenseDays>0)
+			{
+				//弹出提示框
+				showAllert();
+			}
+			//更新剩余时间
+			surplusDays = m_nLicenseDays;
+		}else{
+			m_sSystemInfo.m_bIsTest = false;
+			m_sRunningInfo.m_bCheck = true;
+			slots_OnBtnStar();
+			slots_OnExit(true);
+		}
+	}else{
+		QMessageBox::information(this,QString::fromLocal8Bit("错误"),QString::fromLocal8Bit("加密验证失败,即将退出程序!"));
+		m_sSystemInfo.m_bIsTest = false;
+		m_sRunningInfo.m_bCheck = true;
+		slots_OnBtnStar();
+		slots_OnExit(true);
+	}
+}
+void GlasswareDetectSystem::showAllert()
+{
+	pushLicense* m_tempLicense=new pushLicense; 
+	m_tempLicense->slots_ShowWarning(0,QString::fromLocal8Bit("设备使用授权即将到期\n请联系商务人员！"));
+	m_tempLicense->MaxNumber->start();
+}
 bool GlasswareDetectSystem::CheckLicense()
 {
 	QString  g_UidChar = "06a6914a-d863-43e1-800e-7e2eece22fd7";
@@ -3055,25 +3112,6 @@ bool GlasswareDetectSystem::CheckLicense()
 	{
 		//验证License
 		s_KeyVerfResult res = m_ProgramLicense.CheckLicenseValid(true);
-
-		//if (res.nError == 11)//发现回拨
-		//{
-		//	Dlg_ResetDog dlg(this,QString(QLatin1String(res.chErrorDetail)));
-		//	dlg.exec();
-		//	if (dlg.m_sResetCode != "")
-		//	{
-		//		//int res = m_ProgramLicense.ResetDog(dlg.m_sResetCode.toLatin1().data());
-		//		//if (res == 0)
-		//		//{
-		//		//	QMessageBox::information(this,"提示","重置成功，重启后生效！");
-		//		//}
-		//		//else
-		//		//{
-		//		//	QMessageBox::information(this,"错误",QString("重置失败！错误代码%1").arg(res));
-		//		//}
-		//	}
-		//	return false;
-		//}
 		if (res.nError <= 0)//未超时
 		{
 			int nDogValue = (int)m_ProgramLicense.ReadDog();
@@ -3085,30 +3123,32 @@ bool GlasswareDetectSystem::CheckLicense()
 			}
 			int m_nLicenseDays = m_ProgramLicense.ReadHardwareID("getexpdate");
 			//m_nLicenseDays = res.nDays;
-			//if (res.nError == -2)
-			//{
-			//QMessageBox::information(this,"提示",QString("License剩余天数：%1天，请及时更换！").arg(m_nLicenseDays));
-			//}
+			surplusDays = m_nLicenseDays;
+			if (m_nLicenseDays<=10 && m_nLicenseDays>0)
+			{
+				showAllert();
+			}
 			//传递窗口句柄
 			m_ProgramLicense.SetMainWnd((HWND)this->winId());
 			return true; 
 		}
 		else
 		{
-			//m_LogManager.MyWriteLogFile("CheckLicenseValid Error",QString("ErrorCode=%1").arg(res.nError),AbnormityLog);
 			QMessageBox::information(this,QString::fromLocal8Bit("错误"),QString::fromLocal8Bit("License过期或加密狗异常！错误代码：%1").arg(res.nError));
 			return false;
 		}
 	}
 	else
 	{
-		//m_LogManager.MyWriteLogFile("VerCode Error",QString("UU Code=%1").arg(strCode),AbnormityLog);
 		QMessageBox::information(this,QString::fromLocal8Bit("错误"),QString::fromLocal8Bit("加密验证失败！"));
 		return false;
 	}
 	return true;
 }
 #else
+void GlasswareDetectSystem::MonitorLicense()
+{
+}
 bool GlasswareDetectSystem::CheckLicense()
 {
 	return TRUE;

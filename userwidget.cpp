@@ -235,39 +235,55 @@ void UserWidget::slots_login()
 		//ÉèÖÃ´óÐ¡
 		ui.toolButton_accountManege->setFixedSize(pixmap.width(), pixmap.height());
 		ui.toolButton_accountManege->setAutoRaise(true);
+		pMainFrm->widget_count->widgetCountSet->ui.pushButton_clear->setEnabled(false);
 
 		if (pMainFrm->sPermission.iClear)
 		{
 			pMainFrm->title_widget->button_list.at(11)->setEnabled(true);
-			pMainFrm->widget_count->widgetCountSet->ui.pushButton_clear->setEnabled(true);
+		}else{
+			pMainFrm->title_widget->button_list.at(11)->setEnabled(false);
 		}
+
 		if (pMainFrm->sPermission.iExit)
 		{
 			pMainFrm->title_widget->button_list.at(13)->setEnabled(true);
+		}else{
+			pMainFrm->title_widget->button_list.at(13)->setEnabled(false);
 		}
+
 		if (pMainFrm->sPermission.iStartStop)
 		{
 			pMainFrm->title_widget->button_list.at(12)->setEnabled(true);
+		}else{
+			pMainFrm->title_widget->button_list.at(12)->setEnabled(false);
 		}
+
 		if (pMainFrm->sPermission.iImageCarve)
 		{
 			pMainFrm->widget_carveSetting->image_widget->buttonShowCarve->setVisible(true);
-
+		}else{
+			pMainFrm->widget_carveSetting->image_widget->buttonShowCarve->setVisible(false);
 		}
+
 		if (pMainFrm->sPermission.iVarietyManege)
 		{
 			pMainFrm->title_widget->button_list.at(4)->setEnabled(true);
+		}else{
+			pMainFrm->title_widget->button_list.at(4)->setEnabled(false);
 		}
+
 		if (pMainFrm->sPermission.iSystemSet)
 		{
 			pMainFrm->title_widget->button_list.at(5)->setEnabled(true);
+		}else{
+			pMainFrm->title_widget->button_list.at(5)->setEnabled(false);
 		}
-		if (pMainFrm->sPermission.iPLCSet)
-		{
-		}
+
 		if (pMainFrm->sPermission.iAlgSet)
 		{
 			pMainFrm->title_widget->button_list.at(6)->setEnabled(true);
+		}else{
+			pMainFrm->title_widget->button_list.at(6)->setEnabled(false);
 		}
 		 
 
@@ -310,7 +326,7 @@ void UserWidget::slots_cancel()
 		pMainFrm->title_widget->button_list.at(5)->setEnabled(false);
 		pMainFrm->title_widget->button_list.at(6)->setEnabled(false);
 		pMainFrm->title_widget->button_list.at(13)->setEnabled(false);
-
+		pMainFrm->title_widget->button_list.at(11)->setEnabled(false);
 		pMainFrm->widget_carveSetting->image_widget->buttonShowCarve->setVisible(false);
 //		if (pMainFrm->m_sSystemInfo.m_bIsStopNeedPermission && pMainFrm->m_sRunningInfo.m_bCheck)
 		{

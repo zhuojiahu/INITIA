@@ -12,7 +12,7 @@
 #include <QTime>
 #include <QFile>
 // #include "ui_widget_count.h"
-
+#include "widget_Report.h"
 #include "stateTool.h"
 #include "countset.h"
 #include "qexcel.h"
@@ -36,7 +36,7 @@ public:
 	void openInNotePad(QString str);
 	void InsertLastCountInfo();
 	bool SaveCountInfoByTime();
-	void ClearAllData();
+	void ClearAllData(int temp = 0);
 	DWORD GetProcessIdFromName(const char*processName)   ;
 public slots:
 	bool slots_intoWidget();
@@ -60,7 +60,7 @@ public:
 	CountSet *widgetCountSet;
 	QPushButton *buttonTurn;
 	QStackedWidget *pStackedCount;
-	QPlainTextEdit *recordText;
+	TemporaryData m_TemporaryData;
 private:
 	QMutex m_mutexmAddRow;						//操作互斥
 	QTableView *m_ListCountWidget;				//统计总数
@@ -69,7 +69,7 @@ private:
 	QWidget *listWidget;
 	QWidget *recordWidget;
 	QScrollArea *scrollArea;
-
+	WidgetReport * m_WidgetReport;
 	QStandardItemModel *m_modelCount;			//错误数据模板
 	QStandardItemModel *m_modelHour;			//错误数据模板
 	QStandardItemModel *m_modelCamera;			//错误数据模板

@@ -72,6 +72,7 @@ private:
 	s_AlgCInP sAlgCInp;						//检测输入参数
 	s_AlgCheckResult *pAlgCheckResult;		//返回检测结果结构体
 	s_Status  sReturnStatus;				// 函数执行状态信息
+	s_Loc_Ori tempOri;
 public:
 	int ThreadNumber;					//线程号，对应相机号
 	int iCamera;

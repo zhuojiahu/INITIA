@@ -91,6 +91,7 @@ public slots:
 	void slots_onStateChanged(int);
 	void CloseAssert();
 	void slots_ifCheckShowImage();
+	void slots_CameraOffAreet();
 private:
 	void saveSampleInfo();
 	
@@ -139,7 +140,7 @@ private:
 	int m_nSampleWidth;
 
 	QTimer* timerUpdateIOCardCounter;
-	
+	QTimer* CameraOffAreet;
 	double MaxRate;
 	double MinRate;
 	int resultTime;

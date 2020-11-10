@@ -28,10 +28,25 @@ Widget_CarveImage::Widget_CarveImage(QWidget *parent)
 	pCurveGray->setRenderHint(QwtPlotItem::RenderAntialiased,true);
 	pCurveGray->attach(pWidgetCarveInfo->ui.qwtPlot_sharpness);
 
-	pCurveSarpness = new QwtPlotCurve(tr("Sarpness"));
-	pCurveSarpness->setPen(QPen(QColor(233,21,50)));
+	pCurveReferenceLineA = new QwtPlotCurve();
+	pCurveReferenceLineA->setPen(QPen(QColor(0,0,255)));
+	pCurveReferenceLineA->setRenderHint(QwtPlotItem::RenderAntialiased,false);
+	pCurveReferenceLineA->attach(pWidgetCarveInfo->ui.qwtPlot_sharpness);
+	
+	pCurveReferenceLineB = new QwtPlotCurve();
+	pCurveReferenceLineB->setPen(QPen(QColor(0,0,255)));
+	pCurveReferenceLineB->setRenderHint(QwtPlotItem::RenderAntialiased,false);
+	pCurveReferenceLineB->attach(pWidgetCarveInfo->ui.qwtPlot_sharpness);
+
+	pCurveReferenceLineC = new QwtPlotCurve(QString::fromLocal8Bit("参考线"));
+	pCurveReferenceLineC->setPen(QPen(QColor(0,0,255)));
+	pCurveReferenceLineC->setRenderHint(QwtPlotItem::RenderAntialiased,false);
+	pCurveReferenceLineC->attach(pWidgetCarveInfo->ui.qwtPlot_sharpness);
+
+	/*pCurveSarpness = new QwtPlotCurve(QString::fromLocal8Bit("参考线"));
+	pCurveSarpness->setPen(QPen(QColor(0,0,255)));
 	pCurveSarpness->setRenderHint(QwtPlotItem::RenderAntialiased,true);
-	pCurveSarpness->attach(pWidgetCarveInfo->ui.qwtPlot_sharpness);
+	pCurveSarpness->attach(pWidgetCarveInfo->ui.qwtPlot_sharpness);*/
 
 	pWidgetCarveInfo->ui.qwtPlot_sharpness->insertLegend(new QwtLegend(),QwtPlot::BottomLegend); 
 
@@ -94,6 +109,7 @@ void Widget_CarveImage::init(int iCamNo)
 	topPoint.setY(maxPoint.y() - topPoint.y()-pMainFrm->m_sCarvedCamInfo[iCameraNo].m_iImageHeight);
 	buttomPoint.setY(topPoint.y()+pMainFrm->m_sCarvedCamInfo[iCameraNo].m_iImageHeight);
 
+	m_HVPoint=maxPoint;
 
 	pView = new CMyGraphicsView(pBaseWidget);
 	pCamScene = new QGraphicsScene(pBaseWidget);
@@ -114,6 +130,12 @@ void Widget_CarveImage::init(int iCamNo)
 	pHorizonLineItem3 = new QGraphicsLineItem;
 	pHorizonLineItem4 = new QGraphicsLineItem;
 	pHorizonLineItem5 = new QGraphicsLineItem;
+	m_pHorizonV = new QGraphicsLineItem(pBmpItem);
+	m_pHorizonH = new QGraphicsLineItem(pBmpItem);
+	m_pHorizonV1 = new QGraphicsLineItem(pBmpItem);
+	m_pHorizonV2 = new QGraphicsLineItem(pBmpItem);
+	m_pHorizonH1 = new QGraphicsLineItem(pBmpItem);
+	m_pHorizonH2 = new QGraphicsLineItem(pBmpItem);
 
 	QPen rectPen(QBrush(QColor(255,0,0)),2,Qt::SolidLine,Qt::RoundCap,Qt::RoundJoin);
 	pCarveRectItem->setPen(rectPen);
@@ -436,6 +458,31 @@ void Widget_CarveImage::ReturnToOriginal()
 
 	slots_updateActiveImg(iCameraNo);
 	modifyRect();
+
+	m_pHorizonV->setVisible(true);
+	m_pHorizonV1->setVisible(true);
+	m_pHorizonV2->setVisible(true);
+	m_pHorizonH->setVisible(true);
+	m_pHorizonH1->setVisible(true);
+	m_pHorizonH2->setVisible(true);
+	int heighttemp = maxPoint.y();
+	int widthtemp = maxPoint.x();
+	QPen rectPens(QBrush(QColor(0,0,255)),2,Qt::SolidLine,Qt::RoundCap,Qt::RoundJoin);
+	m_pHorizonV->setPen(rectPens);
+	m_pHorizonV1->setPen(rectPens);
+	m_pHorizonV2->setPen(rectPens);
+	m_pHorizonH1->setPen(rectPens);
+	m_pHorizonH2->setPen(rectPens);
+
+	m_pHorizonH->setPen(rectPens);
+	m_pHorizonH->setLine(widthtemp/2,heighttemp,widthtemp/2,0); //竖线
+	m_pHorizonH1->setLine((int)(widthtemp*0.25),heighttemp,(int)(widthtemp*0.25),0); //竖线
+	m_pHorizonH2->setLine((int)(widthtemp*0.75),heighttemp,(int)(widthtemp*0.75),0); //竖线
+
+	m_pHorizonV->setLine(0,heighttemp/2,widthtemp,heighttemp/2); //横线
+	m_pHorizonV1->setLine(0,heighttemp/10,widthtemp,heighttemp/10); //横线
+	m_pHorizonV2->setLine(0,heighttemp/10*9,widthtemp,heighttemp/10*9); //横线
+
 }
 void Widget_CarveImage::slots_cancel()
 {
@@ -586,6 +633,13 @@ void Widget_CarveImage::slots_save()
 	}
 
 	pMainFrm->Logfile.write(tr("Carve image!")+tr("CamNo:%1").arg(iCarvedCamNum),OperationLog);
+	
+	m_pHorizonH->setVisible(false);
+	m_pHorizonH1->setVisible(false);
+	m_pHorizonH2->setVisible(false);
+	m_pHorizonV->setVisible(false);
+	m_pHorizonV1->setVisible(false);
+	m_pHorizonV2->setVisible(false);
 
 }
 void Widget_CarveImage::slots_CopyROI()
@@ -1213,6 +1267,9 @@ double Widget_CarveImage::EdgeSpan(uchar* pRes,int iResWidth,int iResHeight,int 
 	QVector <double> GrayValue;
 	QVector <double> SharpValue;
 	QVector <double> testWidth;
+	QVector <double> ReferenceLineA;
+	QVector <double> ReferenceLineB;
+	QVector <double> ReferenceLineC;
 	double dMaxSlope = 0;
 	double dSharp = 0;
 	if ((iTarWidth)<10)
@@ -1220,28 +1277,53 @@ double Widget_CarveImage::EdgeSpan(uchar* pRes,int iResWidth,int iResHeight,int 
 		return -1;//矩形太窄
 	}
 
-	int middleLine = iTarY + iTarHeight/2;
+	/*int middleLine = iTarY + iTarHeight/2;
 	uchar* pTempRes = pRes+iResWidth*(middleLine)+iTarX;
 
 	for (int i = 0;i<iTarWidth;i++)
 	{
-		GrayValue.push_back(*(pTempRes + i));
-		
-		if (i<iTarWidth-1)
-		{
-			dSharp = *(pTempRes + i+1)-*(pTempRes + i);
-			SharpValue.push_back(fabs(dSharp));
-		}
-		testWidth.push_back(i);
-		if (dMaxSlope < fabs(dSharp))
-		{
-			dMaxSlope = fabs(dSharp);
-		}
-	}
+	GrayValue.push_back(*(pTempRes + i));
 
-	pCurveGray->setSamples(testWidth,GrayValue);
-	pCurveSarpness->setSamples(testWidth,SharpValue);
-	pWidgetCarveInfo->ui.qwtPlot_sharpness->setAxisScale(QwtPlot::xBottom,0,iTarWidth);
+	if (i<iTarWidth-1)
+	{
+	dSharp = *(pTempRes + i+1)-*(pTempRes + i);
+	SharpValue.push_back(fabs(dSharp));
+	}
+	testWidth.push_back(i);
+	if (dMaxSlope < fabs(dSharp))
+	{
+	dMaxSlope = fabs(dSharp);
+	}
+	}*/
+	int middleLine = iTarY ;//+ iTarHeight/2;
+	uchar* pTempRes = pRes+iResWidth*(middleLine)+iTarX;
+
+	
+	for(int j=0;j<iTarHeight;j++)
+	{
+		int sumGray = 0;
+		double sumSharp = 0;
+		for (int i = 0;i<iTarWidth;i++)
+		{
+			sumGray += *(pTempRes + i);
+			sumSharp += *(pTempRes + i+1)-*(pTempRes + i);
+		}
+		pTempRes += iResWidth;
+		GrayValue.push_front((int)sumGray/iTarWidth);
+		SharpValue.push_back(fabs(sumSharp/iTarWidth));
+		ReferenceLineA.push_back(140);
+		ReferenceLineB.push_back(170);
+		ReferenceLineC.push_back(200);
+		testWidth.push_back(j);
+	}
+	
+	pCurveReferenceLineA->setSamples(ReferenceLineA,testWidth);
+	pCurveReferenceLineB->setSamples(ReferenceLineB,testWidth);
+	pCurveReferenceLineC->setSamples(ReferenceLineC,testWidth);
+	pCurveGray->setSamples(GrayValue,testWidth);
+	//pCurveSarpness->setSamples(SharpValue,testWidth);
+	pWidgetCarveInfo->ui.qwtPlot_sharpness->setAxisScale(QwtPlot::yLeft,0,iTarHeight);
+	pWidgetCarveInfo->ui.qwtPlot_sharpness->setAxisScale(QwtPlot::xBottom,0,256);
 	pWidgetCarveInfo->ui.qwtPlot_sharpness->replot();
 
 	return dMaxSlope;
@@ -1512,6 +1594,25 @@ void Widget_CarveImage::showRect()
 	pHorizonLineItem3->setLine(x1,				y1+(y2-y1)*3/6,	x2,				y1+(y2-y1)*3/6);
 	pHorizonLineItem4->setLine(x1+(x2-x1)*3/8,	y1+(y2-y1)*4/6,	x1+(x2-x1)*5/8,	y1+(y2-y1)*4/6);
 	pHorizonLineItem5->setLine(x1+(x2-x1)*3/8,	y1+(y2-y1)*5/6,	x1+(x2-x1)*5/8,	y1+(y2-y1)*5/6);
+
+
+	int heighttemp = m_HVPoint.y();//spinBox_Y->text().toInt();
+	int widthtemp = m_HVPoint.x();//spinBox_W->text().toInt();
+	QPen rectPens(QBrush(QColor(0,0,255)),2,Qt::SolidLine,Qt::RoundCap,Qt::RoundJoin);
+	m_pHorizonV->setPen(rectPens);
+	m_pHorizonV1->setPen(rectPens);
+	m_pHorizonV2->setPen(rectPens);
+	m_pHorizonH1->setPen(rectPens);
+	m_pHorizonH2->setPen(rectPens);
+
+	m_pHorizonH->setPen(rectPens);
+	m_pHorizonH->setLine(widthtemp/2,heighttemp,widthtemp/2,0); //竖线
+	m_pHorizonH1->setLine((int)(widthtemp*0.25),heighttemp,(int)(widthtemp*0.25),0); //竖线
+	m_pHorizonH2->setLine((int)(widthtemp*0.75),heighttemp,(int)(widthtemp*0.75),0); //竖线
+
+	m_pHorizonV->setLine(0,heighttemp/2,widthtemp,heighttemp/2); //横线
+	m_pHorizonV1->setLine(0,heighttemp/10,widthtemp,heighttemp/10); //横线
+	m_pHorizonV2->setLine(0,heighttemp/10*9,widthtemp,heighttemp/10*9); //横线
 
 }
 //测试平均灰度
@@ -2269,7 +2370,7 @@ void Widget_CarveImage::slots_UpdateGrayInfo()
 {
 	int realCamNo =  pWidgetCarveInfo->ui.spinBox_realNo->value()-1;
 
-	int iRectWidth = (spinBox_X->value())/8*8;
+	int iRectWidth = (spinBox_W->value())/8*8;
 	int iRectHeight = (spinBox_H->value())/8*8; 
 	int i_ImageX = spinBox_X->value();
 

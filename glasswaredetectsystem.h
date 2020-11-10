@@ -40,6 +40,13 @@
 #include "stateTool.h"
 #include <Mmsystem.h>
 #pragma comment( lib,"winmm.lib" )
+
+struct ImageSave
+{
+	QImage* pThat;
+	QImage m_Picture;
+};
+
 class GlasswareDetectSystem : public QDialog
 {
 	Q_OBJECT
@@ -75,6 +82,10 @@ public:
 	bool RoAngle(uchar* pRes,uchar* pTar,int iResWidth,int iResHeight,int iAngle);
 	void InitLastData();
 	bool CheckLicense();
+	void MonitorLicense();
+	void showAllert();
+	//高低踢废率报警
+	void ShowAlelertStatus(int,int,int,QString=0);
 signals:
 	void signals_intoInfoWidget();
 	void signals_intoCarveSettingWidget();
@@ -92,8 +103,8 @@ public slots:
 	void slots_turnPage(int current_page, int iPara = 0);
 	void slots_MessageBoxMainThread(s_MSGBoxInfo msgbox);				//子线程弹出对话框
 	void slots_OnBtnStar();
-	void slots_OnExit();
-	void slots_ShowPLCStatus(int iStatus,int temp_1=0,int temp_2=0,QString temp_3=0);
+	void slots_OnExit(bool ifyanz=false);
+	void slots_ShowPLCStatus(int iStatus);
 private slots:
 	void slots_UpdateCoderNumber();
 	void slots_updateCameraState(int nCam,int nMode = 0);
@@ -233,17 +244,12 @@ public:
 	bool uniqueFlag;
 	QString SaveDataPath;
 public:
-	struct ImageSave
-	{
-		QImage* pThat;
-		QImage m_Picture;
-	};
 	ImageSave m_SavePicture[CAMERA_MAX_COUNT];
 	double MaxRate;
 	double MinRate;
 	QList<time_t> AertNumber[ERRORTYPE_MAX_COUNT];
 	CSpendTime timeCost[CAMERA_MAX_COUNT];
+	int surplusDays;
 };
-
 #endif // GLASSWAREDETECTSYSTEM_H
 
